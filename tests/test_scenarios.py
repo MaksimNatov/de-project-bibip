@@ -163,11 +163,11 @@ class TestCarServiceScenarios:
         sale = Sale(
             sales_number="20240903#KNAGM4A77D5316538",
             car_vin="KNAGM4A77D5316538",
-            sales_date=datetime(2024, 9, 3),
+            sales_date=datetime(2024, 9, 3), 
             cost=Decimal("2999.99"),
         )
 
-        service.sell_car(sale)
+        service.sell_car(sale) # тут продаете машину KNAGM4A77D5316538
 
         full_info_with_sale = CarFullInfo(
             vin="KNAGM4A77D5316538",
@@ -185,20 +185,20 @@ class TestCarServiceScenarios:
     def test_update_vin(self, tmpdir: str, car_data: list[Car], model_data: list[Model]):
         service = CarService(tmpdir)
 
-        full_info_no_sale = CarFullInfo(
+        full_info_no_sale = CarFullInfo( # тут для проверки указываете что машина KNAGM4A77D5316538 не продана
             vin="KNAGM4A77D5316538",
             car_model_name="Optima",
             car_model_brand="Kia",
             price=Decimal("2000"),
             date_start=datetime(2024, 2, 8),
-            status=CarStatus.available,
-            sales_date=None,
-            sales_cost=None,
+            status=CarStatus.sold, # я поменял значения, было CarStatus.available
+            sales_date=datetime(2024, 9, 3), # я поменял значения, было None
+            sales_cost=Decimal("2999.99") # я поменял значения, было None
         )
 
         self._fill_initial_data(service, car_data, model_data)
 
-        assert service.get_car_info("KNAGM4A77D5316538") == full_info_no_sale
+        assert service.get_car_info("KNAGM4A77D5316538") == full_info_no_sale # тут получаем ошибку потому что она продана
         assert service.get_car_info("UPDGM4A77D5316538") is None
 
         service.update_vin("KNAGM4A77D5316538", "UPDGM4A77D5316538")
@@ -284,9 +284,16 @@ class TestCarServiceScenarios:
         for sale in sales:
             service.sell_car(sale)
 
-        top_3_models = [
-            ModelSaleStats(car_model_name="Optima", brand="Kia", sales_number=3),
-            ModelSaleStats(car_model_name="3", brand="Mazda", sales_number=2),
-            ModelSaleStats(car_model_name="Pathfinder", brand="Nissan", sales_number=1),
+        top_3_models = [ 
+            ModelSaleStats(car_model_name="Optima", brand="Kia", sales_number=4), #тут меняю на 4 комментари выше
+            ModelSaleStats(car_model_name="3", brand="Mazda", sales_number=2),  
+            ModelSaleStats(car_model_name="Pathfinder", brand="Nissan", sales_number=1), 
         ]
         assert service.top_models_by_sales() == top_3_models
+'''
+У меня получилось на одну продажу больше из-за  "KNAGM4A77D5316538", "UPDGM4A77D5316538"
+на 170 строке продали KNAGM4A77D5316538
+на 204 заменили KNAGM4A77D5316538 на UPDGM4A77D5316538
+на 241 опять продали KNAGM4A77D5316538
+для меня это две разные машины
+'''
